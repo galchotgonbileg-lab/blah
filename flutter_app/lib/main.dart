@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'menu_page.dart';
+import 'screens/restaurant_list_page.dart';
 
 void main() {
   runApp(const RestaurantApp());
@@ -28,44 +28,69 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Restaurant App'),
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.restaurant, size: 64),
-            SizedBox(height: 16),
-            Text(
-              'Flutter starter бэлэн боллоо',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text('Та эндээс хөгжүүлж эхлэх боломжтой.'),
-            SizedBox(height: 24),
-            _ViewMenuButton(),
-          ],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Icon(
+                  Icons.restaurant_rounded,
+                  size: 44,
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Хамгийн шилдэг \nресторануудыг олоорой',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Амт, ариун цэвэр, үйлчилгээгээр үнэлэгдсэн рестораны жагсаалтыг үзээрэй.',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const RestaurantListPage(),
+                      ),
+                    );
+                  },
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  icon: const Icon(Icons.restaurant_menu_rounded),
+                  label: const Text('Ресторан үзэх'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    );
-  }
-}
-
-class _ViewMenuButton extends StatelessWidget {
-  const _ViewMenuButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return FilledButton.icon(
-      onPressed: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const MenuPage()),
-        );
-      },
-      icon: const Icon(Icons.restaurant_menu),
-      label: const Text('View Menu'),
     );
   }
 }
