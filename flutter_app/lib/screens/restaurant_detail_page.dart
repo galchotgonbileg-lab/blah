@@ -1,18 +1,38 @@
 import 'package:flutter/material.dart';
 
-import '../data/sample_data.dart';
 import '../models/restaurant.dart';
+import '../models/review.dart';
+import '../services/restaurant_api.dart';
 import '../widgets/star_rating.dart';
 
-class RestaurantDetailPage extends StatelessWidget {
+class RestaurantDetailPage extends StatefulWidget {
   const RestaurantDetailPage({super.key, required this.restaurant});
 
   final Restaurant restaurant;
 
   @override
+  State<RestaurantDetailPage> createState() => _RestaurantDetailPageState();
+}
+
+class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
+  late Future<List<Review>> _reviewsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _reviewsFuture = RestaurantApi.fetchReviews(widget.restaurant.id);
+  }
+
+  void _retry() {
+    setState(() {
+      _reviewsFuture = RestaurantApi.fetchReviews(widget.restaurant.id);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final reviews = sampleReviewsByRestaurant[restaurant.id] ?? const [];
+    final restaurant = widget.restaurant;
 
     return Scaffold(
       appBar: AppBar(
@@ -94,64 +114,105 @@ class RestaurantDetailPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          Text(
-            'Сэтгэгдэл (${reviews.length})',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 12),
-          if (reviews.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Text(
-                'Одоогоор сэтгэгдэл алга.',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            )
-          else
-            ...reviews.map((review) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 16,
-                                backgroundColor: theme.colorScheme.secondaryContainer,
-                                child: Text(
-                                  review.userDisplayName.isNotEmpty
-                                      ? review.userDisplayName[0]
-                                      : '?',
-                                  style: TextStyle(
-                                    color: theme.colorScheme.onSecondaryContainer,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  review.userDisplayName,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                              StarRating(rating: review.overallRating, size: 15),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(review.comment),
-                        ],
+          FutureBuilder<List<Review>>(
+            future: _reviewsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              if (snapshot.hasError) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Сэтгэгдэл ачаалж чадсангүй.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 8),
+                      OutlinedButton(
+                        onPressed: _retry,
+                        child: const Text('Дахин оролдох'),
+                      ),
+                    ],
                   ),
-                )),
+                );
+              }
+
+              final reviews = snapshot.data ?? const [];
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Сэтгэгдэл (${reviews.length})',
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 12),
+                  if (reviews.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        'Одоогоор сэтгэгдэл алга.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    )
+                  else
+                    ...reviews.map((review) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(14),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 16,
+                                        backgroundColor: theme.colorScheme.secondaryContainer,
+                                        child: Text(
+                                          review.userDisplayName.isNotEmpty
+                                              ? review.userDisplayName[0]
+                                              : '?',
+                                          style: TextStyle(
+                                            color: theme.colorScheme.onSecondaryContainer,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          review.userDisplayName,
+                                          style: theme.textTheme.bodyMedium?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      StarRating(rating: review.overallRating, size: 15),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(review.comment),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )),
+                ],
+              );
+            },
+          ),
         ],
       ),
     );

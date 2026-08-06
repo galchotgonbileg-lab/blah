@@ -35,14 +35,18 @@ function loadEnvFile() {
 
 loadEnvFile();
 
+const restaurantsData = JSON.parse(
+  fs.readFileSync(path.join(__dirname, 'data', 'restaurants.json'), 'utf8')
+);
+
 const port = 3000;
 const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, {
     'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',  
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type'
   });
   res.end(JSON.stringify(payload));
@@ -63,19 +67,40 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type'
     });
     res.end();
     return;
   }
 
-  if (req.url === '/health') {
+  const { pathname } = new URL(req.url, 'http://localhost');
+
+  if (pathname === '/health') {
     sendJson(res, 200, { status: 'ok' });
     return;
   }
 
-  if (req.url === '/api/assistant' && req.method === 'POST') {
+  if (pathname === '/api/restaurants' && req.method === 'GET') {
+    sendJson(res, 200, restaurantsData.restaurants);
+    return;
+  }
+
+  const reviewsMatch = pathname.match(/^\/api\/restaurants\/([^/]+)\/reviews$/);
+  if (reviewsMatch && req.method === 'GET') {
+    const restaurantId = reviewsMatch[1];
+    const restaurant = restaurantsData.restaurants.find((r) => r.id === restaurantId);
+
+    if (!restaurant) {
+      sendJson(res, 404, { error: 'Restaurant not found' });
+      return;
+    }
+
+    sendJson(res, 200, restaurantsData.reviews[restaurantId] ?? []);
+    return;
+  }
+
+  if (pathname === '/api/assistant' && req.method === 'POST') {
     try {
       const body = await readBody(req);
       const { prompt } = JSON.parse(body);

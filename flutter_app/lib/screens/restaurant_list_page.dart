@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../constants/districts.dart';
-import '../data/sample_data.dart';
 import '../models/restaurant.dart';
+import '../services/restaurant_api.dart';
 import '../widgets/star_rating.dart';
 import 'restaurant_detail_page.dart';
 
@@ -17,6 +17,13 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
   String? _selectedCategory;
   final _searchController = TextEditingController();
   String _query = '';
+  late Future<List<Restaurant>> _restaurantsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _restaurantsFuture = RestaurantApi.fetchRestaurants();
+  }
 
   @override
   void dispose() {
@@ -24,8 +31,14 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
     super.dispose();
   }
 
-  List<Restaurant> get _filtered {
-    return sampleRestaurants.where((restaurant) {
+  void _retry() {
+    setState(() {
+      _restaurantsFuture = RestaurantApi.fetchRestaurants();
+    });
+  }
+
+  List<Restaurant> _filter(List<Restaurant> restaurants) {
+    return restaurants.where((restaurant) {
       final matchesCategory =
           _selectedCategory == null || restaurant.category == _selectedCategory;
       final matchesQuery =
@@ -36,8 +49,6 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final restaurants = _filtered;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Рестораны жагсаалт'),
@@ -85,16 +96,33 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: restaurants.isEmpty
-                ? const _EmptyState()
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    itemCount: restaurants.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) => _RestaurantCard(
-                      restaurant: restaurants[index],
-                    ),
+            child: FutureBuilder<List<Restaurant>>(
+              future: _restaurantsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return _ErrorState(onRetry: _retry);
+                }
+
+                final restaurants = _filter(snapshot.data ?? const []);
+
+                if (restaurants.isEmpty) {
+                  return const _EmptyState();
+                }
+
+                return ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  itemCount: restaurants.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) => _RestaurantCard(
+                    restaurant: restaurants[index],
                   ),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -225,6 +253,36 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           const Text('Илэрц олдсонгүй'),
+        ],
+      ),
+    );
+  }
+}
+
+class _ErrorState extends StatelessWidget {
+  const _ErrorState({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.wifi_off_rounded,
+            size: 48,
+            color: Theme.of(context).colorScheme.outline,
+          ),
+          const SizedBox(height: 12),
+          const Text('Мэдээлэл ачаалж чадсангүй.\nСервер ажиллаж байгаа эсэхийг шалгана уу.',
+              textAlign: TextAlign.center),
+          const SizedBox(height: 12),
+          FilledButton.tonal(
+            onPressed: onRetry,
+            child: const Text('Дахин оролдох'),
+          ),
         ],
       ),
     );

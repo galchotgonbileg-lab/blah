@@ -146,6 +146,59 @@ if (aiAskBtn && aiPrompt && aiResponseEl) {
   });
 }
 
+const RESTAURANTS_URL = 'http://localhost:3000/api/restaurants';
+const restaurantsGridEl = document.getElementById('restaurants-grid');
+const restaurantsStatusEl = document.getElementById('restaurants-status');
+
+function starsHtml(rating) {
+  const filled = Math.round(rating);
+  let html = '';
+  for (let i = 0; i < 5; i += 1) {
+    html += i < filled ? '★' : '<span class="star-empty">★</span>';
+  }
+  return html;
+}
+
+function renderRestaurants(list) {
+  restaurantsGridEl.innerHTML = '';
+
+  for (const restaurant of list) {
+    const card = document.createElement('article');
+    card.className = 'card dish-card';
+    card.innerHTML = `
+      <div class="dish-icon" aria-hidden="true">🍽️</div>
+      <h3>${restaurant.name}</h3>
+      <p>${restaurant.category} · ${restaurant.district}</p>
+      <div class="stars" aria-label="${restaurant.avgOverall} out of 5 stars">${starsHtml(restaurant.avgOverall)}</div>
+      <span class="dish-price">${restaurant.avgOverall.toFixed(1)} (${restaurant.reviewCount})</span>
+    `;
+    restaurantsGridEl.appendChild(card);
+  }
+}
+
+async function loadRestaurants() {
+  if (!restaurantsGridEl || !restaurantsStatusEl) {
+    return;
+  }
+
+  restaurantsStatusEl.textContent = 'Loading restaurants...';
+
+  try {
+    const response = await fetch(RESTAURANTS_URL);
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+
+    const restaurants = await response.json();
+    renderRestaurants(restaurants);
+    restaurantsStatusEl.textContent = '';
+  } catch (error) {
+    restaurantsStatusEl.textContent = `Could not load restaurants. Is the server running? (${error.message})`;
+  }
+}
+
+loadRestaurants();
+
 const form = document.getElementById('booking-form');
 const formMessage = document.getElementById('form-message');
 

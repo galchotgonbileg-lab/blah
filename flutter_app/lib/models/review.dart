@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class Review {
   const Review({
     required this.id,
@@ -25,18 +23,17 @@ class Review {
 
   double get overallRating => (tasteRating + hygieneRating + serviceRating) / 3;
 
-  factory Review.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
-    final data = doc.data()!;
+  factory Review.fromJson(Map<String, dynamic> json) {
     return Review(
-      id: doc.id,
-      userId: data['userId'] as String? ?? '',
-      userDisplayName: data['userDisplayName'] as String? ?? 'Хэрэглэгч',
-      tasteRating: (data['tasteRating'] as num?)?.toInt() ?? 0,
-      hygieneRating: (data['hygieneRating'] as num?)?.toInt() ?? 0,
-      serviceRating: (data['serviceRating'] as num?)?.toInt() ?? 0,
-      comment: data['comment'] as String? ?? '',
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
+      id: json['id'] as String? ?? '',
+      userId: json['userId'] as String? ?? '',
+      userDisplayName: json['userDisplayName'] as String? ?? 'Хэрэглэгч',
+      tasteRating: (json['tasteRating'] as num?)?.toInt() ?? 0,
+      hygieneRating: (json['hygieneRating'] as num?)?.toInt() ?? 0,
+      serviceRating: (json['serviceRating'] as num?)?.toInt() ?? 0,
+      comment: json['comment'] as String? ?? '',
+      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
+      updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt'] as String) : null,
     );
   }
 }

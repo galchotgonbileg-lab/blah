@@ -1,0 +1,107 @@
+{
+  "restaurants": [
+    {
+      "id": "r1",
+      "name": "Алтан халбага",
+      "city": "Улаанбаатар",
+      "district": "Сүхбаатар дүүрэг",
+      "category": "Монгол хоол",
+      "createdBy": "seed",
+      "createdAt": "2025-03-01T00:00:00.000Z",
+      "reviewCount": 128,
+      "avgTaste": 4.6,
+      "avgHygiene": 4.4,
+      "avgService": 4.5,
+      "avgOverall": 4.5,
+      "address": "Энхтайваны өргөн чөлөө 12",
+      "photoUrl": null
+    },
+    {
+      "id": "r2",
+      "name": "Bella Pasta",
+      "city": "Улаанбаатар",
+      "district": "Хан-Уул дүүрэг",
+      "category": "Итали хоол",
+      "createdBy": "seed",
+      "createdAt": "2025-04-12T00:00:00.000Z",
+      "reviewCount": 76,
+      "avgTaste": 4.3,
+      "avgHygiene": 4.7,
+      "avgService": 4.1,
+      "avgOverall": 4.4,
+      "address": "Чингисийн өргөн чөлөө 5",
+      "photoUrl": null
+    },
+    {
+      "id": "r3",
+      "name": "Сакура суши",
+      "city": "Улаанбаатар",
+      "district": "Баянгол дүүрэг",
+      "category": "Япон хоол",
+      "createdBy": "seed",
+      "createdAt": "2025-02-20T00:00:00.000Z",
+      "reviewCount": 54,
+      "avgTaste": 4.8,
+      "avgHygiene": 4.6,
+      "avgService": 4.3,
+      "avgOverall": 4.6,
+      "address": "Оргил зам 3",
+      "photoUrl": null
+    },
+    {
+      "id": "r4",
+      "name": "Бууз хаус",
+      "city": "Улаанбаатар",
+      "district": "Чингэлтэй дүүрэг",
+      "category": "Бууз, банш",
+      "createdBy": "seed",
+      "createdAt": "2025-05-03T00:00:00.000Z",
+      "reviewCount": 203,
+      "avgTaste": 4.2,
+      "avgHygiene": 3.9,
+      "avgService": 4.0,
+      "avgOverall": 4.0,
+      "address": "Санзайн зам 21",
+      "photoUrl": null
+    }
+  ],
+  "reviews": {
+    "r1": [
+      {
+        "id": "rev1",
+        "userId": "u1",
+        "userDisplayName": "Болд",
+        "tasteRating": 5,
+        "hygieneRating": 4,
+        "serviceRating": 5,
+        "comment": "Хуушуур нь маш амттай, үйлчилгээ хурдан байлаа.",
+        "createdAt": "2025-06-01T00:00:00.000Z",
+        "updatedAt": null
+      },
+      {
+        "id": "rev2",
+        "userId": "u2",
+        "userDisplayName": "Сараа",
+        "tasteRating": 4,
+        "hygieneRating": 5,
+        "serviceRating": 4,
+        "comment": "Цэвэрхэн, тохилог орчинтой.",
+        "createdAt": "2025-06-10T00:00:00.000Z",
+        "updatedAt": null
+      }
+    ],
+    "r3": [
+      {
+        "id": "rev3",
+        "userId": "u3",
+        "userDisplayName": "Отгонбаяр",
+        "tasteRating": 5,
+        "hygieneRating": 5,
+        "serviceRating": 4,
+        "comment": "Загас маш шинэ, дахин очих болно.",
+        "createdAt": "2025-05-22T00:00:00.000Z",
+        "updatedAt": null
+      }
+    ]
+  }
+}
