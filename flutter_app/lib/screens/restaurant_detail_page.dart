@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/restaurant.dart';
 import '../models/review.dart';
 import '../services/restaurant_api.dart';
+import '../widgets/rating_input.dart';
 import '../widgets/star_rating.dart';
 
 class RestaurantDetailPage extends StatefulWidget {
@@ -15,6 +16,7 @@ class RestaurantDetailPage extends StatefulWidget {
 }
 
 class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
+  late Restaurant _restaurant = widget.restaurant;
   late Future<List<Review>> _reviewsFuture;
 
   @override
@@ -29,14 +31,34 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     });
   }
 
+  Future<void> _openAddReviewSheet() async {
+    final result = await showModalBottomSheet<({Review review, Restaurant restaurant})>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _AddReviewSheet(restaurantId: _restaurant.id),
+    );
+
+    if (result != null) {
+      setState(() {
+        _restaurant = result.restaurant;
+        _reviewsFuture = RestaurantApi.fetchReviews(_restaurant.id);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final restaurant = widget.restaurant;
+    final restaurant = _restaurant;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(restaurant.name),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _openAddReviewSheet,
+        icon: const Icon(Icons.rate_review_rounded),
+        label: const Text('Сэтгэгдэл нэмэх'),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -214,6 +236,148 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AddReviewSheet extends StatefulWidget {
+  const _AddReviewSheet({required this.restaurantId});
+
+  final String restaurantId;
+
+  @override
+  State<_AddReviewSheet> createState() => _AddReviewSheetState();
+}
+
+class _AddReviewSheetState extends State<_AddReviewSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _commentController = TextEditingController();
+  int _tasteRating = 0;
+  int _hygieneRating = 0;
+  int _serviceRating = 0;
+  bool _isSubmitting = false;
+  String? _errorText;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  bool get _ratingsValid => _tasteRating > 0 && _hygieneRating > 0 && _serviceRating > 0;
+
+  Future<void> _submit() async {
+    if (!(_formKey.currentState?.validate() ?? false) || !_ratingsValid) {
+      setState(() {
+        if (!_ratingsValid) {
+          _errorText = 'Бүх үнэлгээг сонгоно уу.';
+        }
+      });
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _errorText = null;
+    });
+
+    try {
+      final result = await RestaurantApi.submitReview(
+        restaurantId: widget.restaurantId,
+        userDisplayName: _nameController.text.trim(),
+        tasteRating: _tasteRating,
+        hygieneRating: _hygieneRating,
+        serviceRating: _serviceRating,
+        comment: _commentController.text.trim(),
+      );
+
+      if (mounted) {
+        Navigator.of(context).pop(result);
+      }
+    } catch (error) {
+      setState(() {
+        _errorText = error.toString().replaceFirst('Exception: ', '');
+        _isSubmitting = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Сэтгэгдэл нэмэх',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Таны нэр'),
+              validator: (value) =>
+                  (value == null || value.trim().isEmpty) ? 'Нэрээ оруулна уу.' : null,
+            ),
+            const SizedBox(height: 16),
+            RatingInput(
+              label: 'Амт',
+              value: _tasteRating,
+              onChanged: (value) => setState(() => _tasteRating = value),
+            ),
+            RatingInput(
+              label: 'Ариун цэвэр',
+              value: _hygieneRating,
+              onChanged: (value) => setState(() => _hygieneRating = value),
+            ),
+            RatingInput(
+              label: 'Үйлчилгээ',
+              value: _serviceRating,
+              onChanged: (value) => setState(() => _serviceRating = value),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _commentController,
+              decoration: const InputDecoration(labelText: 'Сэтгэгдэл'),
+              maxLength: 500,
+              maxLines: 3,
+              validator: (value) =>
+                  (value == null || value.trim().isEmpty) ? 'Сэтгэгдэл бичнэ үү.' : null,
+            ),
+            if (_errorText != null) ...[
+              Text(
+                _errorText!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+              const SizedBox(height: 8),
+            ],
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _isSubmitting ? null : _submit,
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Илгээх'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

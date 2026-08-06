@@ -37,6 +37,22 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
     });
   }
 
+  Future<void> _openAddRestaurantSheet() async {
+    final created = await showModalBottomSheet<Restaurant>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => const _AddRestaurantSheet(),
+    );
+
+    if (created != null) {
+      setState(() {
+        _restaurantsFuture = _restaurantsFuture
+            .then((list) => [...list, created])
+            .catchError((_) => [created]);
+      });
+    }
+  }
+
   List<Restaurant> _filter(List<Restaurant> restaurants) {
     return restaurants.where((restaurant) {
       final matchesCategory =
@@ -52,6 +68,11 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Рестораны жагсаалт'),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _openAddRestaurantSheet,
+        icon: const Icon(Icons.add_business_rounded),
+        label: const Text('Ресторан нэмэх'),
       ),
       body: Column(
         children: [
@@ -119,6 +140,7 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (context, index) => _RestaurantCard(
                     restaurant: restaurants[index],
+                    onReturn: _retry,
                   ),
                 );
               },
@@ -152,9 +174,10 @@ class _CategoryChip extends StatelessWidget {
 }
 
 class _RestaurantCard extends StatelessWidget {
-  const _RestaurantCard({required this.restaurant});
+  const _RestaurantCard({required this.restaurant, required this.onReturn});
 
   final Restaurant restaurant;
+  final VoidCallback onReturn;
 
   @override
   Widget build(BuildContext context) {
@@ -164,11 +187,13 @@ class _RestaurantCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => RestaurantDetailPage(restaurant: restaurant),
-            ),
-          );
+          Navigator.of(context)
+              .push(
+                MaterialPageRoute(
+                  builder: (context) => RestaurantDetailPage(restaurant: restaurant),
+                ),
+              )
+              .then((_) => onReturn());
         },
         child: Padding(
           padding: const EdgeInsets.all(14),
@@ -254,6 +279,150 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 12),
           const Text('Илэрц олдсонгүй'),
         ],
+      ),
+    );
+  }
+}
+
+class _AddRestaurantSheet extends StatefulWidget {
+  const _AddRestaurantSheet();
+
+  @override
+  State<_AddRestaurantSheet> createState() => _AddRestaurantSheetState();
+}
+
+class _AddRestaurantSheetState extends State<_AddRestaurantSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _cityController = TextEditingController(text: 'Улаанбаатар');
+  final _addressController = TextEditingController();
+  String? _district;
+  String? _category;
+  bool _isSubmitting = false;
+  String? _errorText;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _cityController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!(_formKey.currentState?.validate() ?? false) || _district == null || _category == null) {
+      setState(() {
+        if (_district == null || _category == null) {
+          _errorText = 'Дүүрэг болон ангиллаа сонгоно уу.';
+        }
+      });
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _errorText = null;
+    });
+
+    try {
+      final restaurant = await RestaurantApi.createRestaurant(
+        name: _nameController.text.trim(),
+        city: _cityController.text.trim(),
+        district: _district!,
+        category: _category!,
+        address: _addressController.text.trim(),
+      );
+
+      if (mounted) {
+        Navigator.of(context).pop(restaurant);
+      }
+    } catch (error) {
+      setState(() {
+        _errorText = error.toString().replaceFirst('Exception: ', '');
+        _isSubmitting = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Шинэ ресторан нэмэх',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Нэр'),
+              validator: (value) =>
+                  (value == null || value.trim().isEmpty) ? 'Нэрээ оруулна уу.' : null,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _cityController,
+              decoration: const InputDecoration(labelText: 'Хот'),
+              validator: (value) =>
+                  (value == null || value.trim().isEmpty) ? 'Хотоо оруулна уу.' : null,
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _district,
+              decoration: const InputDecoration(labelText: 'Дүүрэг'),
+              items: mongolianDistricts
+                  .map((district) => DropdownMenuItem(value: district, child: Text(district)))
+                  .toList(),
+              onChanged: (value) => setState(() => _district = value),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _category,
+              decoration: const InputDecoration(labelText: 'Ангилал'),
+              items: restaurantCategories
+                  .map((category) => DropdownMenuItem(value: category, child: Text(category)))
+                  .toList(),
+              onChanged: (value) => setState(() => _category = value),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _addressController,
+              decoration: const InputDecoration(labelText: 'Хаяг (сонголтоор)'),
+            ),
+            if (_errorText != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _errorText!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _isSubmitting ? null : _submit,
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Үүсгэх'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
