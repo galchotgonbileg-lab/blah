@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^cd d:\\\\Projects\\\\restaurant\\\\js ; node index\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

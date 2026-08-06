@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Restaurant Landing Page</title>
+    <meta name="description" content="A modern restaurant starter project" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="nav container">
+        <a class="brand" href="#">Golden Spoon</a>
+        <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links">
+          <a href="#menu">Menu</a>
+          <a href="#order">Order</a>
+          <a href="#assistant">Assistant</a>
+          <a href="#about">About</a>
+          <a href="#reserve">Reserve</a>
+          <a href="#contact">Contact</a>
+        </div>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="hero-content container">
+        <div>
+          <p class="eyebrow">Freshly prepared • Cozy atmosphere</p>
+          <h1>Discover your next favorite meal.</h1>
+          <p class="lead">
+            A warm, modern dining experience with handcrafted dishes and thoughtful service.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#menu">View Menu</a>
+            <a class="btn btn-secondary" href="#reserve">Book a Table</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <h3>Tonight's Special</h3>
+          <p>Herb roasted chicken with seasonal vegetables</p>
+          <span>From $18</span>
+        </div>
+      </div>
+    </section>
+
+    <main>
+      <section id="menu" class="section container">
+        <div class="section-heading">
+          <p class="eyebrow">Signature dishes</p>
+          <h2>Comfort food, elevated.</h2>
+        </div>
+        <div class="card-grid">
+          <article class="card">
+            <h3>Smoked Tomato Pasta</h3>
+            <p>Rich tomato sauce, basil, and parmesan.</p>
+          </article>
+          <article class="card">
+            <h3>Grilled Salmon</h3>
+            <p>Served with roasted potatoes and citrus greens.</p>
+          </article>
+          <article class="card">
+            <h3>House Dessert</h3>
+            <p>Warm chocolate tart with vanilla bean cream.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="order" class="section container">
+        <div class="section-heading">
+          <p class="eyebrow">Order online</p>
+          <h2>Build your order.</h2>
+        </div>
+        <div class="order-layout">
+          <div class="order-card">
+            <label for="order-dish">Dish</label>
+            <select id="order-dish">
+              <option value="Smoked Tomato Pasta" data-price="14">Smoked Tomato Pasta — $14</option>
+              <option value="Grilled Salmon" data-price="19">Grilled Salmon — $19</option>
+              <option value="House Dessert" data-price="8">House Dessert — $8</option>
+            </select>
+            <label for="order-qty">Quantity</label>
+            <input type="number" id="order-qty" min="1" value="1" />
+            <button class="btn btn-primary" id="add-to-order" type="button">Add to order</button>
+          </div>
+          <div class="order-summary">
+            <h3>Your order</h3>
+            <ul id="order-list"></ul>
+            <p id="order-total">Total: $0</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="assistant" class="section section-alt">
+        <div class="container">
+          <div class="section-heading">
+            <p class="eyebrow">Need ideas?</p>
+            <h2>Ask our AI assistant.</h2>
+          </div>
+          <div class="ai-panel">
+            <div class="ai-box">
+              <label for="ai-prompt">Your question</label>
+              <textarea id="ai-prompt" rows="4" placeholder="e.g. Suggest a dish for a date night"></textarea>
+              <button class="btn btn-primary" id="ai-ask" type="button">Ask</button>
+            </div>
+            <div class="ai-box">
+              <h3>Response</h3>
+              <p id="ai-response" class="ai-response">Ask a question to get a suggestion.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="about" class="section section-alt">
+        <div class="container about-grid">
+          <div>
+            <p class="eyebrow">Our story</p>
+            <h2>Made with care from the first ingredient to the last bite.</h2>
+            <p>
+              We believe a great restaurant should feel welcoming, memorable, and delicious.
+              Our kitchen blends local ingredients with timeless flavors.
+            </p>
+          </div>
+          <div class="quote-box">
+            <p>“Food that brings people together.”</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section container">
+        <div class="section-heading">
+          <p class="eyebrow">What guests say</p>
+          <h2>Trusted by food lovers and local regulars.</h2>
+        </div>
+        <div class="testimonial-grid">
+          <article class="card">
+            <p>“The service felt personal and the food was unforgettable.”</p>
+            <strong>— Maya, NYC</strong>
+          </article>
+          <article class="card">
+            <p>“Perfect spot for a cozy dinner with friends.”</p>
+            <strong>— Daniel, Brooklyn</strong>
+          </article>
+          <article class="card">
+            <p>“Everything from the pasta to the dessert was excellent.”</p>
+            <strong>— Sofia, Queens</strong>
+          </article>
+        </div>
+      </section>
+
+      <section id="reserve" class="section section-alt">
+        <div class="container reserve-grid">
+          <div>
+            <p class="eyebrow">Reserve</p>
+            <h2>Book your table in a few clicks.</h2>
+            <p>
+              Choose a date and we’ll confirm your request shortly. Walk-ins are always welcome too.
+            </p>
+          </div>
+          <form id="booking-form" class="booking-form">
+            <input type="text" name="name" placeholder="Your name" required />
+            <input type="email" name="email" placeholder="Email" required />
+            <input type="date" name="date" required />
+            <select name="guests">
+              <option>2 guests</option>
+              <option>4 guests</option>
+              <option>6 guests</option>
+              <option>8+ guests</option>
+            </select>
+            <button class="btn btn-primary" type="submit">Request reservation</button>
+            <p id="form-message" class="form-message" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+
+      <section id="contact" class="section container contact">
+        <div class="section-heading">
+          <p class="eyebrow">Visit us</p>
+          <h2>Reserve a table or stop by for lunch.</h2>
+        </div>
+        <p>123 Flavor Street, Downtown • Open daily from 11:00 AM to 10:00 PM</p>
+        <a class="btn btn-secondary" href="mailto:hello@goldenspoon.com">hello@goldenspoon.com</a>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-content">
+        <p>© <span id="year"></span> Golden Spoon</p>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
