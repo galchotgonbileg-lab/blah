@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Restaurant Landing Page</title>
     <meta name="description" content="A modern restaurant starter project" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%BD%EF%B8%8F%3C/text%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -58,28 +59,34 @@
 
     <main>
       <section id="menu" class="section container">
-        <div class="section-heading">
+        <div class="section-heading reveal">
           <p class="eyebrow">Signature dishes</p>
           <h2>Comfort food, elevated.</h2>
         </div>
         <div class="card-grid">
-          <article class="card">
+          <article class="card dish-card">
+            <div class="dish-icon" aria-hidden="true">🍝</div>
             <h3>Smoked Tomato Pasta</h3>
             <p>Rich tomato sauce, basil, and parmesan.</p>
+            <span class="dish-price">$14</span>
           </article>
-          <article class="card">
+          <article class="card dish-card">
+            <div class="dish-icon" aria-hidden="true">🐟</div>
             <h3>Grilled Salmon</h3>
             <p>Served with roasted potatoes and citrus greens.</p>
+            <span class="dish-price">$19</span>
           </article>
-          <article class="card">
+          <article class="card dish-card">
+            <div class="dish-icon" aria-hidden="true">🍫</div>
             <h3>House Dessert</h3>
             <p>Warm chocolate tart with vanilla bean cream.</p>
+            <span class="dish-price">$8</span>
           </article>
         </div>
       </section>
 
       <section id="order" class="section container">
-        <div class="section-heading">
+        <div class="section-heading reveal">
           <p class="eyebrow">Order online</p>
           <h2>Build your order.</h2>
         </div>
@@ -105,7 +112,7 @@
 
       <section id="assistant" class="section section-alt">
         <div class="container">
-          <div class="section-heading">
+          <div class="section-heading reveal">
             <p class="eyebrow">Need ideas?</p>
             <h2>Ask our AI assistant.</h2>
           </div>
@@ -140,20 +147,23 @@
       </section>
 
       <section class="section container">
-        <div class="section-heading">
+        <div class="section-heading reveal">
           <p class="eyebrow">What guests say</p>
           <h2>Trusted by food lovers and local regulars.</h2>
         </div>
         <div class="testimonial-grid">
           <article class="card">
+            <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
             <p>“The service felt personal and the food was unforgettable.”</p>
             <strong>— Maya, NYC</strong>
           </article>
           <article class="card">
+            <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
             <p>“Perfect spot for a cozy dinner with friends.”</p>
             <strong>— Daniel, Brooklyn</strong>
           </article>
           <article class="card">
+            <div class="stars" aria-label="4 out of 5 stars">★★★★<span class="star-empty">★</span></div>
             <p>“Everything from the pasta to the dessert was excellent.”</p>
             <strong>— Sofia, Queens</strong>
           </article>
@@ -186,7 +196,7 @@
       </section>
 
       <section id="contact" class="section container contact">
-        <div class="section-heading">
+        <div class="section-heading reveal">
           <p class="eyebrow">Visit us</p>
           <h2>Reserve a table or stop by for lunch.</h2>
         </div>
@@ -200,6 +210,8 @@
         <p>© <span id="year"></span> Golden Spoon</p>
       </div>
     </footer>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
     <script src="script.js"></script>
   </body>

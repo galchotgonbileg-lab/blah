@@ -43,6 +43,17 @@ if (year) {
   year.textContent = new Date().getFullYear();
 }
 
+const toastEl = document.getElementById('toast');
+let toastTimer;
+
+function showToast(message) {
+  if (!toastEl) return;
+  toastEl.textContent = message;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2500);
+}
+
 const orderDish = document.getElementById('order-dish');
 const orderQty = document.getElementById('order-qty');
 const addToOrderBtn = document.getElementById('add-to-order');
@@ -54,12 +65,27 @@ function renderOrder() {
   orderListEl.innerHTML = '';
   let total = 0;
 
-  for (const item of order) {
+  order.forEach((item, index) => {
     total += item.price * item.qty;
     const li = document.createElement('li');
-    li.textContent = `${item.qty} × ${item.name} — $${(item.price * item.qty).toFixed(2)}`;
+
+    const label = document.createElement('span');
+    label.textContent = `${item.qty} × ${item.name} — $${(item.price * item.qty).toFixed(2)}`;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'order-item-remove';
+    removeBtn.setAttribute('aria-label', `Remove ${item.name} from order`);
+    removeBtn.textContent = '×';
+    removeBtn.addEventListener('click', () => {
+      order.splice(index, 1);
+      renderOrder();
+    });
+
+    li.appendChild(label);
+    li.appendChild(removeBtn);
     orderListEl.appendChild(li);
-  }
+  });
 
   orderTotalEl.textContent = `Total: $${total.toFixed(2)}`;
 }
@@ -79,6 +105,7 @@ if (addToOrderBtn && orderDish && orderQty && orderListEl && orderTotalEl) {
     }
 
     renderOrder();
+    showToast(`Added ${qty} × ${name} to your order.`);
   });
 }
 
@@ -129,7 +156,25 @@ if (form && formMessage) {
     const data = new FormData(form);
     const name = data.get('name')?.toString().trim() || 'guest';
     formMessage.textContent = `Thanks, ${name}! Your reservation request has been received.`;
+    showToast('Reservation request sent.');
     form.reset();
   });
+}
+
+const revealEls = document.querySelectorAll('.reveal');
+if (revealEls.length && 'IntersectionObserver' in window) {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.15 }
+  );
+
+  revealEls.forEach((el) => observer.observe(el));
 }
 
