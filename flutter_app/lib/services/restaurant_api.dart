@@ -6,7 +6,7 @@ import '../models/restaurant.dart';
 import '../models/review.dart';
 
 class RestaurantApi {
-  static const String baseUrl = 'http://localhost:3000';
+  static const String baseUrl = 'https://api1.gbogd.com';
 
   static Future<List<Restaurant>> fetchRestaurants() async {
     final response = await http.get(Uri.parse('$baseUrl/api/restaurants'));

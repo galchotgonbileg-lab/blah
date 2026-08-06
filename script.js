@@ -112,7 +112,7 @@ if (addToOrderBtn && orderDish && orderQty && orderListEl && orderTotalEl) {
 const aiPrompt = document.getElementById('ai-prompt');
 const aiAskBtn = document.getElementById('ai-ask');
 const aiResponseEl = document.getElementById('ai-response');
-const ASSISTANT_URL = 'http://localhost:3000/api/assistant';
+const ASSISTANT_URL = 'https://api1.gbogd.com/api/assistant';
 
 if (aiAskBtn && aiPrompt && aiResponseEl) {
   aiAskBtn.addEventListener('click', async () => {
@@ -146,7 +146,7 @@ if (aiAskBtn && aiPrompt && aiResponseEl) {
   });
 }
 
-const RESTAURANTS_URL = 'http://localhost:3000/api/restaurants';
+const RESTAURANTS_URL = 'https://api1.gbogd.com/api/restaurants';
 const restaurantsGridEl = document.getElementById('restaurants-grid');
 const restaurantsStatusEl = document.getElementById('restaurants-status');
 
