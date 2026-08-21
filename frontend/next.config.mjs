@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  agentRules: false
+  allowedDevOrigins: ['localhost', '127.0.0.1', '10.52.14.79', '192.168.56.1', '72.60.235.104']
 };
 
 export default nextConfig;
