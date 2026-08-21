@@ -1,228 +1,166 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="mn">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Restaurant Landing Page</title>
-    <meta name="description" content="A modern restaurant starter project" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%BD%EF%B8%8F%3C/text%3E%3C/svg%3E" />
+    <title>Амттай - Хоол захиалга</title>
+    <meta name="description" content="Монгол хэлтэй хоол захиалга, ресторан үнэлгээний апп" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%9C%3C/text%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
-    <script>
-      document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
-    </script>
   </head>
   <body>
     <header class="site-header">
-      <nav class="nav container">
-        <a class="brand" href="#">Golden Spoon</a>
-        <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">
+      <nav class="nav container" aria-label="Үндсэн цэс">
+        <a class="brand" href="#app">Амттай</a>
+        <button class="menu-toggle" aria-label="Цэс нээх" aria-expanded="false">
           <span></span><span></span><span></span>
         </button>
         <div class="nav-links">
-          <a href="#menu">Menu</a>
-          <a href="#restaurants">Restaurants</a>
-          <a href="#order">Order</a>
-          <a href="#assistant">Assistant</a>
-          <a href="#about">About</a>
-          <a href="#reserve">Reserve</a>
-          <a href="#contact">Contact</a>
+          <a href="#app">Захиалга</a>
+          <a href="#restaurants">Ресторан</a>
+          <a href="#assistant">Туслах</a>
+          <a href="#booking">Ширээ</a>
         </div>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Өнгөний горим солих">☀</button>
       </nav>
     </header>
 
-    <section class="hero">
-      <div class="hero-content container">
-        <div>
-          <p class="eyebrow">Freshly prepared • Cozy atmosphere</p>
-          <h1>Discover your next favorite meal.</h1>
-          <p class="lead">
-            A warm, modern dining experience with handcrafted dishes and thoughtful service.
-          </p>
-          <div class="hero-actions">
-            <a class="btn btn-primary" href="#menu">View Menu</a>
-            <a class="btn btn-secondary" href="#reserve">Book a Table</a>
-          </div>
-        </div>
-        <div class="hero-card">
-          <h3>Tonight's Special</h3>
-          <p>Herb roasted chicken with seasonal vegetables</p>
-          <span>From $18</span>
-        </div>
-      </div>
-    </section>
-
     <main>
-      <section id="menu" class="section container">
-        <div class="section-heading reveal">
-          <p class="eyebrow">Signature dishes</p>
-          <h2>Comfort food, elevated.</h2>
-        </div>
-        <div class="card-grid">
-          <article class="card dish-card">
-            <div class="dish-icon" aria-hidden="true">🍝</div>
-            <h3>Smoked Tomato Pasta</h3>
-            <p>Rich tomato sauce, basil, and parmesan.</p>
-            <span class="dish-price">$14</span>
-          </article>
-          <article class="card dish-card">
-            <div class="dish-icon" aria-hidden="true">🐟</div>
-            <h3>Grilled Salmon</h3>
-            <p>Served with roasted potatoes and citrus greens.</p>
-            <span class="dish-price">$19</span>
-          </article>
-          <article class="card dish-card">
-            <div class="dish-icon" aria-hidden="true">🍫</div>
-            <h3>House Dessert</h3>
-            <p>Warm chocolate tart with vanilla bean cream.</p>
-            <span class="dish-price">$8</span>
-          </article>
+      <section id="app" class="app-hero">
+        <div class="container app-layout">
+          <div class="menu-panel">
+            <div class="hero-copy">
+              <p class="eyebrow">Улаанбаатарын амтууд</p>
+              <h1>Өнөөдрийн хоолоо хурдан сонго.</h1>
+              <p class="lead">Дуртай хоолоо шүүж, сагсандаа нэмээд нийт дүнгээ шууд хар.</p>
+            </div>
+
+            <div class="toolbar" role="search">
+              <label class="search-field" for="dish-search">
+                <span>Хайх</span>
+                <input id="dish-search" type="search" placeholder="Бууз, паста, суши..." />
+              </label>
+              <div class="category-tabs" id="category-tabs" aria-label="Хоолны төрөл"></div>
+            </div>
+
+            <div class="dish-grid" id="dish-grid" aria-live="polite"></div>
+          </div>
+
+          <aside class="cart-panel" aria-label="Миний захиалга">
+            <div class="cart-header">
+              <div>
+                <p class="eyebrow">Захиалга</p>
+                <h2>Миний сагс</h2>
+              </div>
+              <span id="cart-count" class="cart-count">0</span>
+            </div>
+
+            <div class="delivery-toggle" role="group" aria-label="Захиалгын төрөл">
+              <button class="active" type="button" data-mode="delivery">Хүргэлт</button>
+              <button type="button" data-mode="pickup">Очиж авах</button>
+            </div>
+
+            <ul id="cart-list" class="cart-list"></ul>
+
+            <div class="totals">
+              <div><span>Хоол</span><strong id="subtotal">₮0</strong></div>
+              <div><span id="service-label">Хүргэлт</span><strong id="service-fee">₮0</strong></div>
+              <div class="grand-total"><span>Нийт</span><strong id="grand-total">₮0</strong></div>
+            </div>
+
+            <form id="checkout-form" class="checkout-form">
+              <input name="name" type="text" placeholder="Нэр" required />
+              <input name="phone" type="tel" placeholder="Утас" required />
+              <textarea name="note" rows="3" placeholder="Нэмэлт тэмдэглэл"></textarea>
+              <button class="btn btn-primary" type="submit">Захиалга илгээх</button>
+              <p id="checkout-message" class="form-message" aria-live="polite"></p>
+            </form>
+          </aside>
         </div>
       </section>
 
-      <section id="restaurants" class="section container">
-        <div class="section-heading reveal">
-          <p class="eyebrow">Discover more</p>
-          <h2>Highly rated restaurants nearby.</h2>
-        </div>
-        <div class="card-grid" id="restaurants-grid"></div>
-        <p id="restaurants-status" class="form-message" aria-live="polite"></p>
-      </section>
+      <section id="restaurants" class="section">
+        <div class="container">
+          <div class="section-heading">
+            <p class="eyebrow">Үнэлгээ</p>
+            <h2>Хотын ресторанууд</h2>
+          </div>
 
-      <section id="order" class="section container">
-        <div class="section-heading reveal">
-          <p class="eyebrow">Order online</p>
-          <h2>Build your order.</h2>
-        </div>
-        <div class="order-layout">
-          <div class="order-card">
-            <label for="order-dish">Dish</label>
-            <select id="order-dish">
-              <option value="Smoked Tomato Pasta" data-price="14">Smoked Tomato Pasta — $14</option>
-              <option value="Grilled Salmon" data-price="19">Grilled Salmon — $19</option>
-              <option value="House Dessert" data-price="8">House Dessert — $8</option>
-            </select>
-            <label for="order-qty">Quantity</label>
-            <input type="number" id="order-qty" min="1" value="1" />
-            <button class="btn btn-primary" id="add-to-order" type="button">Add to order</button>
+          <div class="restaurant-tools">
+            <form id="restaurant-form" class="restaurant-form">
+              <input name="name" type="text" placeholder="Рестораны нэр" required />
+              <input name="district" type="text" placeholder="Дүүрэг" required />
+              <input name="category" type="text" placeholder="Төрөл" required />
+              <input name="address" type="text" placeholder="Хаяг" />
+              <button class="btn btn-secondary" type="submit">Ресторан нэмэх</button>
+            </form>
+            <p id="restaurants-status" class="form-message" aria-live="polite"></p>
           </div>
-          <div class="order-summary">
-            <h3>Your order</h3>
-            <ul id="order-list"></ul>
-            <p id="order-total">Total: $0</p>
-          </div>
+
+          <div class="restaurant-grid" id="restaurants-grid"></div>
         </div>
       </section>
 
       <section id="assistant" class="section section-alt">
-        <div class="container">
-          <div class="section-heading reveal">
-            <p class="eyebrow">Need ideas?</p>
-            <h2>Ask our AI assistant.</h2>
-          </div>
-          <div class="ai-panel">
-            <div class="ai-box">
-              <label for="ai-prompt">Your question</label>
-              <textarea id="ai-prompt" rows="4" placeholder="e.g. Suggest a dish for a date night"></textarea>
-              <button class="btn btn-primary" id="ai-ask" type="button">Ask</button>
-            </div>
-            <div class="ai-box">
-              <h3>Response</h3>
-              <p id="ai-response" class="ai-response">Ask a question to get a suggestion.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="about" class="section section-alt">
-        <div class="container about-grid">
+        <div class="container assistant-layout">
           <div>
-            <p class="eyebrow">Our story</p>
-            <h2>Made with care from the first ingredient to the last bite.</h2>
-            <p>
-              We believe a great restaurant should feel welcoming, memorable, and delicious.
-              Our kitchen blends local ingredients with timeless flavors.
-            </p>
+            <p class="eyebrow">Санаа авах</p>
+            <h2>Хоолны туслахаас асуу</h2>
+            <p class="muted">Орц, амт, нөхцөлөө бичвэл санал болгоно.</p>
           </div>
-          <div class="quote-box">
-            <p>“Food that brings people together.”</p>
+          <div class="assistant-box">
+            <textarea id="ai-prompt" rows="4" placeholder="Жишээ: Өнөөдөр халуун шөл идмээр байна"></textarea>
+            <button class="btn btn-primary" id="ai-ask" type="button">Асуух</button>
+            <p id="ai-response" class="assistant-response">Таны асуултын хариу энд гарна.</p>
           </div>
         </div>
       </section>
 
-      <section class="section container">
-        <div class="section-heading reveal">
-          <p class="eyebrow">What guests say</p>
-          <h2>Trusted by food lovers and local regulars.</h2>
-        </div>
-        <div class="testimonial-grid">
-          <article class="card">
-            <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
-            <p>“The service felt personal and the food was unforgettable.”</p>
-            <strong>— Maya, NYC</strong>
-          </article>
-          <article class="card">
-            <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
-            <p>“Perfect spot for a cozy dinner with friends.”</p>
-            <strong>— Daniel, Brooklyn</strong>
-          </article>
-          <article class="card">
-            <div class="stars" aria-label="4 out of 5 stars">★★★★<span class="star-empty">★</span></div>
-            <p>“Everything from the pasta to the dessert was excellent.”</p>
-            <strong>— Sofia, Queens</strong>
-          </article>
-        </div>
-      </section>
-
-      <section id="reserve" class="section section-alt">
-        <div class="container reserve-grid">
+      <section id="booking" class="section">
+        <div class="container booking-layout">
           <div>
-            <p class="eyebrow">Reserve</p>
-            <h2>Book your table in a few clicks.</h2>
-            <p>
-              Choose a date and we’ll confirm your request shortly. Walk-ins are always welcome too.
-            </p>
+            <p class="eyebrow">Ширээ захиалах</p>
+            <h2>Оройн хоолны ширээгээ хадгал.</h2>
+            <p class="muted">Захиалгын хүсэлт локал байдлаар баталгаажна.</p>
           </div>
           <form id="booking-form" class="booking-form">
-            <input type="text" name="name" placeholder="Your name" required />
-            <input type="email" name="email" placeholder="Email" required />
-            <input type="date" name="date" required />
+            <input name="name" type="text" placeholder="Нэр" required />
+            <input name="date" type="date" required />
             <select name="guests">
-              <option>2 guests</option>
-              <option>4 guests</option>
-              <option>6 guests</option>
-              <option>8+ guests</option>
+              <option>2 хүн</option>
+              <option>4 хүн</option>
+              <option>6 хүн</option>
+              <option>8+ хүн</option>
             </select>
-            <button class="btn btn-primary" type="submit">Request reservation</button>
-            <p id="form-message" class="form-message" aria-live="polite"></p>
+            <button class="btn btn-secondary" type="submit">Ширээ захиалах</button>
+            <p id="booking-message" class="form-message" aria-live="polite"></p>
           </form>
         </div>
       </section>
-
-      <section id="contact" class="section container contact">
-        <div class="section-heading reveal">
-          <p class="eyebrow">Visit us</p>
-          <h2>Reserve a table or stop by for lunch.</h2>
-        </div>
-        <p>123 Flavor Street, Downtown • Open daily from 11:00 AM to 10:00 PM</p>
-        <a class="btn btn-secondary" href="mailto:hello@goldenspoon.com">hello@goldenspoon.com</a>
-      </section>
     </main>
 
-    <footer class="footer">
-      <div class="container footer-content">
-        <p>© <span id="year"></span> Golden Spoon</p>
-      </div>
-    </footer>
+    <dialog id="review-dialog" class="review-dialog">
+      <form method="dialog" class="dialog-header">
+        <h2 id="dialog-title">Сэтгэгдэл</h2>
+        <button type="submit" aria-label="Хаах">×</button>
+      </form>
+      <div id="reviews-list" class="reviews-list"></div>
+      <form id="review-form" class="review-form">
+        <input name="userDisplayName" type="text" placeholder="Таны нэр" required />
+        <div class="rating-row">
+          <label>Амт <input name="tasteRating" type="number" min="1" max="5" value="5" required /></label>
+          <label>Цэвэр <input name="hygieneRating" type="number" min="1" max="5" value="5" required /></label>
+          <label>Үйлчилгээ <input name="serviceRating" type="number" min="1" max="5" value="5" required /></label>
+        </div>
+        <textarea name="comment" rows="3" placeholder="Сэтгэгдэл" required></textarea>
+        <button class="btn btn-primary" type="submit">Сэтгэгдэл үлдээх</button>
+      </form>
+    </dialog>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
     <script src="script.js"></script>
   </body>
 </html>

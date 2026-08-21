@@ -1,9 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:restaurant_flutter_app/main.dart';
 
 void main() {
   testWidgets('Home page navigates to restaurant list', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+
     await tester.pumpWidget(const RestaurantApp());
 
     expect(find.text('Ресторан үзэх'), findsOneWidget);

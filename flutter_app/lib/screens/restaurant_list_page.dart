@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../constants/districts.dart';
 import '../models/restaurant.dart';
+import '../services/edit_token_store.dart';
 import '../services/restaurant_api.dart';
+import '../widgets/add_restaurant_sheet.dart';
+import '../widgets/confirm_delete_dialog.dart';
 import '../widgets/star_rating.dart';
 import 'restaurant_detail_page.dart';
 
@@ -18,11 +21,15 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
   final _searchController = TextEditingController();
   String _query = '';
   late Future<List<Restaurant>> _restaurantsFuture;
+  Set<String> _ownedRestaurantIds = {};
 
   @override
   void initState() {
     super.initState();
     _restaurantsFuture = RestaurantApi.fetchRestaurants();
+    EditTokenStore().loadOwnedRestaurantIds().then((ids) {
+      if (mounted) setState(() => _ownedRestaurantIds = ids);
+    });
   }
 
   @override
@@ -41,7 +48,7 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
     final created = await showModalBottomSheet<Restaurant>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => const _AddRestaurantSheet(),
+      builder: (context) => const AddRestaurantSheet(),
     );
 
     if (created != null) {
@@ -49,7 +56,56 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
         _restaurantsFuture = _restaurantsFuture
             .then((list) => [...list, created])
             .catchError((_) => [created]);
+        _ownedRestaurantIds = {..._ownedRestaurantIds, created.id};
       });
+    }
+  }
+
+  Future<void> _openEditRestaurantSheet(Restaurant restaurant) async {
+    final updated = await showModalBottomSheet<Restaurant>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => AddRestaurantSheet(existing: restaurant),
+    );
+
+    if (updated != null) {
+      setState(() {
+        _restaurantsFuture = _restaurantsFuture.then(
+          (list) => [for (final r in list) if (r.id == updated.id) updated else r],
+        );
+      });
+    }
+  }
+
+  Future<void> _deleteRestaurant(Restaurant restaurant) async {
+    final confirmed = await confirmDelete(
+      context,
+      title: 'Ресторан устгах',
+      message: '"${restaurant.name}"-г устгах уу? Энэ үйлдлийг буцаах боломжгүй.',
+    );
+    if (!confirmed) return;
+
+    final token = await EditTokenStore().getRestaurantToken(restaurant.id);
+    if (token == null) return;
+
+    try {
+      await RestaurantApi.deleteRestaurant(id: restaurant.id, editToken: token);
+      await EditTokenStore().removeRestaurantToken(restaurant.id);
+
+      if (mounted) {
+        setState(() {
+          _restaurantsFuture = _restaurantsFuture.then(
+            (list) => list.where((r) => r.id != restaurant.id).toList(),
+          );
+          _ownedRestaurantIds = {..._ownedRestaurantIds}..remove(restaurant.id);
+        });
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
     }
   }
 
@@ -141,6 +197,9 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
                   itemBuilder: (context, index) => _RestaurantCard(
                     restaurant: restaurants[index],
                     onReturn: _retry,
+                    isOwned: _ownedRestaurantIds.contains(restaurants[index].id),
+                    onEdit: () => _openEditRestaurantSheet(restaurants[index]),
+                    onDelete: () => _deleteRestaurant(restaurants[index]),
                   ),
                 );
               },
@@ -174,10 +233,19 @@ class _CategoryChip extends StatelessWidget {
 }
 
 class _RestaurantCard extends StatelessWidget {
-  const _RestaurantCard({required this.restaurant, required this.onReturn});
+  const _RestaurantCard({
+    required this.restaurant,
+    required this.onReturn,
+    required this.isOwned,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   final Restaurant restaurant;
   final VoidCallback onReturn;
+  final bool isOwned;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -253,7 +321,21 @@ class _RestaurantCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded),
+              if (isOwned) ...[
+                IconButton(
+                  onPressed: onEdit,
+                  icon: const Icon(Icons.edit_outlined),
+                  visualDensity: VisualDensity.compact,
+                  tooltip: 'Засах',
+                ),
+                IconButton(
+                  onPressed: onDelete,
+                  icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
+                  visualDensity: VisualDensity.compact,
+                  tooltip: 'Устгах',
+                ),
+              ] else
+                const Icon(Icons.chevron_right_rounded),
             ],
           ),
         ),
@@ -279,150 +361,6 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 12),
           const Text('Илэрц олдсонгүй'),
         ],
-      ),
-    );
-  }
-}
-
-class _AddRestaurantSheet extends StatefulWidget {
-  const _AddRestaurantSheet();
-
-  @override
-  State<_AddRestaurantSheet> createState() => _AddRestaurantSheetState();
-}
-
-class _AddRestaurantSheetState extends State<_AddRestaurantSheet> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _cityController = TextEditingController(text: 'Улаанбаатар');
-  final _addressController = TextEditingController();
-  String? _district;
-  String? _category;
-  bool _isSubmitting = false;
-  String? _errorText;
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _cityController.dispose();
-    _addressController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    if (!(_formKey.currentState?.validate() ?? false) || _district == null || _category == null) {
-      setState(() {
-        if (_district == null || _category == null) {
-          _errorText = 'Дүүрэг болон ангиллаа сонгоно уу.';
-        }
-      });
-      return;
-    }
-
-    setState(() {
-      _isSubmitting = true;
-      _errorText = null;
-    });
-
-    try {
-      final restaurant = await RestaurantApi.createRestaurant(
-        name: _nameController.text.trim(),
-        city: _cityController.text.trim(),
-        district: _district!,
-        category: _category!,
-        address: _addressController.text.trim(),
-      );
-
-      if (mounted) {
-        Navigator.of(context).pop(restaurant);
-      }
-    } catch (error) {
-      setState(() {
-        _errorText = error.toString().replaceFirst('Exception: ', '');
-        _isSubmitting = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Шинэ ресторан нэмэх',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Нэр'),
-              validator: (value) =>
-                  (value == null || value.trim().isEmpty) ? 'Нэрээ оруулна уу.' : null,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _cityController,
-              decoration: const InputDecoration(labelText: 'Хот'),
-              validator: (value) =>
-                  (value == null || value.trim().isEmpty) ? 'Хотоо оруулна уу.' : null,
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              initialValue: _district,
-              decoration: const InputDecoration(labelText: 'Дүүрэг'),
-              items: mongolianDistricts
-                  .map((district) => DropdownMenuItem(value: district, child: Text(district)))
-                  .toList(),
-              onChanged: (value) => setState(() => _district = value),
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              initialValue: _category,
-              decoration: const InputDecoration(labelText: 'Ангилал'),
-              items: restaurantCategories
-                  .map((category) => DropdownMenuItem(value: category, child: Text(category)))
-                  .toList(),
-              onChanged: (value) => setState(() => _category = value),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _addressController,
-              decoration: const InputDecoration(labelText: 'Хаяг (сонголтоор)'),
-            ),
-            if (_errorText != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                _errorText!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            ],
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _isSubmitting ? null : _submit,
-                child: _isSubmitting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Үүсгэх'),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../models/restaurant.dart';
 import '../models/review.dart';
+import '../services/edit_token_store.dart';
 import '../services/restaurant_api.dart';
+import '../widgets/add_restaurant_sheet.dart';
+import '../widgets/confirm_delete_dialog.dart';
 import '../widgets/rating_input.dart';
 import '../widgets/star_rating.dart';
 
@@ -18,11 +21,19 @@ class RestaurantDetailPage extends StatefulWidget {
 class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
   late Restaurant _restaurant = widget.restaurant;
   late Future<List<Review>> _reviewsFuture;
+  bool _ownsRestaurant = false;
+  Set<String> _ownedReviewIds = {};
 
   @override
   void initState() {
     super.initState();
     _reviewsFuture = RestaurantApi.fetchReviews(widget.restaurant.id);
+    EditTokenStore().getRestaurantToken(widget.restaurant.id).then((token) {
+      if (mounted) setState(() => _ownsRestaurant = token != null);
+    });
+    EditTokenStore().loadOwnedReviewIds().then((ids) {
+      if (mounted) setState(() => _ownedReviewIds = ids);
+    });
   }
 
   void _retry() {
@@ -32,17 +43,94 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
   }
 
   Future<void> _openAddReviewSheet() async {
-    final result = await showModalBottomSheet<({Review review, Restaurant restaurant})>(
+    final result = await showModalBottomSheet<({Review review, Restaurant restaurant, String editToken})>(
       context: context,
       isScrollControlled: true,
       builder: (context) => _AddReviewSheet(restaurantId: _restaurant.id),
     );
 
     if (result != null) {
+      await EditTokenStore().saveReviewToken(result.review.id, result.editToken);
       setState(() {
         _restaurant = result.restaurant;
         _reviewsFuture = RestaurantApi.fetchReviews(_restaurant.id);
+        _ownedReviewIds = {..._ownedReviewIds, result.review.id};
       });
+    }
+  }
+
+  Future<void> _openEditRestaurantSheet() async {
+    final updated = await showModalBottomSheet<Restaurant>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => AddRestaurantSheet(existing: _restaurant),
+    );
+
+    if (updated != null) {
+      setState(() => _restaurant = updated);
+    }
+  }
+
+  Future<void> _deleteRestaurant() async {
+    final confirmed = await confirmDelete(
+      context,
+      title: 'Ресторан устгах',
+      message: '"${_restaurant.name}"-г устгах уу? Энэ үйлдлийг буцаах боломжгүй.',
+    );
+    if (!confirmed) return;
+
+    final token = await EditTokenStore().getRestaurantToken(_restaurant.id);
+    if (token == null) return;
+
+    try {
+      await RestaurantApi.deleteRestaurant(id: _restaurant.id, editToken: token);
+      await EditTokenStore().removeRestaurantToken(_restaurant.id);
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteReview(Review review) async {
+    final confirmed = await confirmDelete(
+      context,
+      title: 'Сэтгэгдэл устгах',
+      message: 'Энэ сэтгэгдлийг устгах уу?',
+    );
+    if (!confirmed) return;
+
+    final token = await EditTokenStore().getReviewToken(review.id);
+    if (token == null) return;
+
+    try {
+      final updatedRestaurant = await RestaurantApi.deleteReview(
+        restaurantId: _restaurant.id,
+        reviewId: review.id,
+        editToken: token,
+      );
+      await EditTokenStore().removeReviewToken(review.id);
+
+      if (mounted) {
+        setState(() {
+          _restaurant = updatedRestaurant;
+          _reviewsFuture = _reviewsFuture.then(
+            (list) => list.where((r) => r.id != review.id).toList(),
+          );
+          _ownedReviewIds = {..._ownedReviewIds}..remove(review.id);
+        });
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
     }
   }
 
@@ -54,6 +142,19 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(restaurant.name),
+        actions: [
+          if (_ownsRestaurant)
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit') _openEditRestaurantSheet();
+                if (value == 'delete') _deleteRestaurant();
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem(value: 'edit', child: Text('Засах')),
+                PopupMenuItem(value: 'delete', child: Text('Устгах')),
+              ],
+            ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openAddReviewSheet,
@@ -222,6 +323,13 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                                         ),
                                       ),
                                       StarRating(rating: review.overallRating, size: 15),
+                                      if (_ownedReviewIds.contains(review.id))
+                                        IconButton(
+                                          onPressed: () => _deleteReview(review),
+                                          icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
+                                          visualDensity: VisualDensity.compact,
+                                          tooltip: 'Устгах',
+                                        ),
                                     ],
                                   ),
                                   const SizedBox(height: 8),
@@ -295,7 +403,7 @@ class _AddReviewSheetState extends State<_AddReviewSheet> {
       );
 
       if (mounted) {
-        Navigator.of(context).pop(result);
+        Navigator.of(context).pop<({Review review, Restaurant restaurant, String editToken})>(result);
       }
     } catch (error) {
       setState(() {

@@ -34,7 +34,7 @@ class RestaurantApi {
     return data.map((item) => Review.fromJson(item as Map<String, dynamic>)).toList();
   }
 
-  static Future<({Review review, Restaurant restaurant})> submitReview({
+  static Future<({Review review, Restaurant restaurant, String editToken})> submitReview({
     required String restaurantId,
     required String userDisplayName,
     required int tasteRating,
@@ -60,13 +60,15 @@ class RestaurantApi {
       throw Exception(decoded['error'] as String? ?? 'Failed to submit review (${response.statusCode})');
     }
 
+    final reviewJson = decoded['review'] as Map<String, dynamic>;
     return (
-      review: Review.fromJson(decoded['review'] as Map<String, dynamic>),
+      review: Review.fromJson(reviewJson),
       restaurant: Restaurant.fromJson(decoded['restaurant'] as Map<String, dynamic>),
+      editToken: reviewJson['editToken'] as String,
     );
   }
 
-  static Future<Restaurant> createRestaurant({
+  static Future<({Restaurant restaurant, String editToken})> createRestaurant({
     required String name,
     required String city,
     required String district,
@@ -91,6 +93,67 @@ class RestaurantApi {
       throw Exception(decoded['error'] as String? ?? 'Failed to create restaurant (${response.statusCode})');
     }
 
+    return (restaurant: Restaurant.fromJson(decoded), editToken: decoded['editToken'] as String);
+  }
+
+  static Future<Restaurant> updateRestaurant({
+    required String id,
+    required String editToken,
+    String? name,
+    String? city,
+    String? district,
+    String? category,
+    String? address,
+  }) async {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/api/restaurants/$id'),
+      headers: {'Content-Type': 'application/json', 'X-Edit-Token': editToken},
+      body: jsonEncode({
+        if (name != null) 'name': name,
+        if (city != null) 'city': city,
+        if (district != null) 'district': district,
+        if (category != null) 'category': category,
+        if (address != null) 'address': address,
+      }),
+    );
+
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200) {
+      throw Exception(decoded['error'] as String? ?? 'Failed to update restaurant (${response.statusCode})');
+    }
+
     return Restaurant.fromJson(decoded);
+  }
+
+  static Future<void> deleteRestaurant({required String id, required String editToken}) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/restaurants/$id'),
+      headers: {'X-Edit-Token': editToken},
+    );
+
+    if (response.statusCode != 200) {
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      throw Exception(decoded['error'] as String? ?? 'Failed to delete restaurant (${response.statusCode})');
+    }
+  }
+
+  static Future<Restaurant> deleteReview({
+    required String restaurantId,
+    required String reviewId,
+    required String editToken,
+  }) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/restaurants/$restaurantId/reviews/$reviewId'),
+      headers: {'X-Edit-Token': editToken},
+    );
+
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200) {
+      throw Exception(decoded['error'] as String? ?? 'Failed to delete review (${response.statusCode})');
+    }
+
+    return Restaurant.fromJson(decoded['restaurant'] as Map<String, dynamic>);
   }
 }
