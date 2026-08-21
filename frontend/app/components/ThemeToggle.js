@@ -5,21 +5,27 @@ import { useEffect, useState } from 'react';
 export default function ThemeToggle({ className = '' }) {
   const [theme, setTheme] = useState('dark');
 
-  useEffect(() => {
-    setTheme(localStorage.getItem('amtai-theme') || 'dark');
-  }, []);
+  function applyTheme(nextTheme) {
+    document.documentElement.dataset.theme = nextTheme;
+    localStorage.setItem('amtai-theme', nextTheme);
+  }
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem('amtai-theme', theme);
-  }, [theme]);
+    const savedTheme = localStorage.getItem('amtai-theme') || 'dark';
+    setTheme(savedTheme);
+    applyTheme(savedTheme);
+  }, []);
 
   return (
     <button
       className={`theme-toggle ${className}`}
       type="button"
       aria-label="Өнгөний горим солих"
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      onClick={() => {
+        const nextTheme = (document.documentElement.dataset.theme || theme) === 'dark' ? 'light' : 'dark';
+        setTheme(nextTheme);
+        applyTheme(nextTheme);
+      }}
     >
       {theme === 'dark' ? '☀' : '☾'}
     </button>
