@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import LocationFinder from './components/LocationFinder';
 import SocialBar from './components/SocialBar';
+import ThemeToggle from './components/ThemeToggle';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001';
 
@@ -79,7 +80,6 @@ function stars(rating) {
 }
 
 export default function Home() {
-  const [theme, setTheme] = useState('dark');
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('Бүгд');
   const [search, setSearch] = useState('');
@@ -118,12 +118,6 @@ export default function Home() {
   }, [activeCategory, search]);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem('amtai-theme', theme);
-  }, [theme]);
-
-  useEffect(() => {
-    setTheme(localStorage.getItem('amtai-theme') || 'dark');
     loadRestaurants();
   }, []);
 
@@ -381,9 +375,7 @@ export default function Home() {
             <a href="/backlog" onClick={() => setMenuOpen(false)}>Backlog</a>
             <a href="#booking" onClick={() => setMenuOpen(false)}>Ширээ</a>
           </div>
-          <button className="theme-toggle" type="button" aria-label="Өнгөний горим солих" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-            {theme === 'dark' ? '☀' : '☾'}
-          </button>
+          <ThemeToggle />
         </nav>
       </header>
 

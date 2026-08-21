@@ -21,6 +21,10 @@ export default function LocationFinder({ type = 'all', title = 'Ойролцоо
 
   const hasResults = nearby.restaurants.length > 0 || nearby.destinations.length > 0;
   async function locate() {
+    if (!window.isSecureContext) {
+      setStatus('Mobile дээр location ашиглахын тулд HTTPS хэрэгтэй.');
+      return;
+    }
     if (!navigator.geolocation) {
       setStatus('Таны browser location service дэмжихгүй байна.');
       return;

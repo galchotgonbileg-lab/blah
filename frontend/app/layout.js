@@ -8,7 +8,14 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="mn" data-theme="dark" suppressHydrationWarning>
-      <body>{children}</body>
+      <body>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "document.documentElement.dataset.theme=localStorage.getItem('amtai-theme')||'dark';"
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }
